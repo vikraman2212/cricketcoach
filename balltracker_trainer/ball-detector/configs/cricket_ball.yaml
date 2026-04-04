@@ -1,0 +1,9 @@
+# YOLOv11 dataset configuration for cricket ball detection
+# 1 class: 'cricket_ball'
+
+path: ../datasets/cricket-ball
+train: images/train
+val: images/val
+
+nc: 1
+names: ['cricket_ball']

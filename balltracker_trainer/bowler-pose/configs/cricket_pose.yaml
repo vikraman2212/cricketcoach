@@ -1,0 +1,33 @@
+# YOLOv11-Pose dataset configuration for cricket bowling
+# 17 COCO keypoints, 1 class: 'bowler'
+
+path: ../datasets/cricket-pose
+train: images/train
+val: images/val
+
+kpt_shape: [17, 3]  # 17 keypoints, 3 values each (x, y, visibility)
+nc: 1
+names: ['bowler']
+
+# COCO skeleton connectivity (pairs of keypoint indices)
+# Used for visualization and structural loss
+skeleton:
+  - [15, 13]   # L-Ankle -> L-Knee
+  - [13, 11]   # L-Knee  -> L-Hip
+  - [16, 14]   # R-Ankle -> R-Knee
+  - [14, 12]   # R-Knee  -> R-Hip
+  - [11, 12]   # L-Hip   -> R-Hip
+  - [5, 11]    # L-Shoulder -> L-Hip
+  - [6, 12]    # R-Shoulder -> R-Hip
+  - [5, 6]     # L-Shoulder -> R-Shoulder
+  - [5, 7]     # L-Shoulder -> L-Elbow
+  - [6, 8]     # R-Shoulder -> R-Elbow
+  - [7, 9]     # L-Elbow -> L-Wrist
+  - [8, 10]    # R-Elbow -> R-Wrist
+  - [1, 2]     # L-Eye   -> R-Eye
+  - [0, 1]     # Nose    -> L-Eye
+  - [0, 2]     # Nose    -> R-Eye
+  - [1, 3]     # L-Eye   -> L-Ear
+  - [2, 4]     # R-Eye   -> R-Ear
+  - [3, 5]     # L-Ear   -> L-Shoulder
+  - [4, 6]     # R-Ear   -> R-Shoulder

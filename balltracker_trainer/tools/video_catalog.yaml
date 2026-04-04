@@ -1,0 +1,331 @@
+# Video Catalog — Curated sources for cricket bowling footage
+#
+# DATA PROVENANCE STRATEGY
+# ========================
+# Phase A (Prototyping): YouTube downloads — dataset stays PRIVATE, model weights PRIVATE.
+# Phase B (Release):     Replace with own footage + permissive datasets — weights can be PUBLISHED.
+#
+# Each entry defines a video source with metadata for filtered downloading.
+# Use `download_videos.py --ball-color red --angle behind_stumps` to filter.
+#
+# Fields:
+#   url:            YouTube URL or local file path
+#   camera_angle:   behind_stumps | umpire_pov | side_on
+#   ball_color:     red | white | pink
+#   bowling_style:  fast | medium | spin
+#   laterality:     right | left
+#   bowler_name:    Optional identifier
+#   license:        youtube | cc_by | own_footage | unknown
+#   notes:          Free-text description
+
+videos:
+  # ─────────────────────────────────────────────────────────────────────
+  # BALL DETECTOR — CLUB / LOCAL CRICKET (primary training set)
+  # Rationale: club-level footage matches real-world app usage — rough
+  # outfield, sub-optimal lighting, recreational bowler variation.
+  # ─────────────────────────────────────────────────────────────────────
+
+  # Club fast bowling — red ball — behind stumps — nets/weekend match
+  - url: "ytsearch6:club cricket fast bowling behind stumps red ball net practice"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "club/amateur fast bowling; varied action quality and pitch conditions"
+
+  - url: "ytsearch5:local cricket bowling nets behind wicket red ball weekend match"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "weekend league and net session footage; natural background clutter"
+
+  # Club medium pace — red ball — behind stumps
+  - url: "ytsearch5:club cricket medium pace bowling behind stumps red ball seam"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: medium
+    laterality: right
+    license: youtube
+    notes: "recreational seamer; shows full seam trajectory and variable bounce"
+
+  - url: "ytsearch4:amateur cricket bowling nets medium pace red ball practice session"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: medium
+    laterality: right
+    license: youtube
+    notes: "amateur nets; handheld/GoPro camera angles — important for augmentation diversity"
+
+  # Club spin bowling — red ball — behind stumps
+  - url: "ytsearch5:club cricket spin bowling behind stumps red ball turn flight"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: spin
+    laterality: right
+    license: youtube
+    notes: "club off-spin/leg-spin; slower ball speed helps frame-level annotation"
+
+  - url: "ytsearch4:local cricket nets spinner bowling behind wicket red ball flighted delivery"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: spin
+    laterality: left
+    license: youtube
+    notes: "left-arm orthodox club spinner; important for laterality balance"
+
+  # Club white-ball — behind stumps (T20 league, tape-ball)
+  - url: "ytsearch5:club cricket T20 league bowling behind stumps white ball"
+    camera_angle: behind_stumps
+    ball_color: white
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "club T20 / gully cricket; white ball under mixed daylight"
+
+  - url: "ytsearch4:tape ball cricket bowling behind stumps white ball gully cricket nets"
+    camera_angle: behind_stumps
+    ball_color: white
+    bowling_style: medium
+    laterality: right
+    license: youtube
+    notes: "tape-ball nets common in South Asia; different ball reflectance from leather"
+
+  - url: "ytsearch4:left handed bowler cricket bowling nets white ball behind stumps practise session"
+    camera_angle: behind_stumps
+    ball_color: white
+    bowling_style: medium
+    laterality: left
+    license: youtube
+    notes: "tape-ball nets common in South Asia; different ball reflectance from leather"
+
+  # ─────────────────────────────────────────────────────────────────────
+  # BOWLER POSE — CLUB / LOCAL CRICKET (joint keypoint training)
+  # Goal: diverse amateur body types, run-up lengths, release points
+  # ─────────────────────────────────────────────────────────────────────
+
+  # Club fast bowler — side-on — full run-up and delivery stride
+  - url: "ytsearch5:club cricket fast bowler side on full run up action technique amateur"
+    camera_angle: side_on
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "varied amateur fast action; captures diverse front-foot positions"
+
+  - url: "ytsearch4:local cricket bowling action side on analysis junior fast bowler"
+    camera_angle: side_on
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "junior/youth club bowling; smaller body frames expand keypoint variety"
+
+  # Club spinner — side-on — arm action, pivot, follow-through
+  - url: "ytsearch4:club cricket spinner side on bowling action leg spin off spin amateur"
+    camera_angle: side_on
+    ball_color: red
+    bowling_style: spin
+    laterality: right
+    license: youtube
+    notes: "amateur wrist/finger spin — broader wrist angle distribution than professional"
+
+  # Junior / youth nets — mixed — umpire/behind POV
+  - url: "ytsearch4:youth cricket bowling nets junior club behind stumps mixed styles"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: medium
+    laterality: right
+    license: youtube
+    notes: "junior nets; smaller ball:body ratio and variable run-up length"
+
+  # ─────────────────────────────────────────────────────────────────────
+  # INTERNATIONAL (supplementary — provides clean ground-truth labels)
+  # Keep a small international set so the model learns ideal technique too
+  # ─────────────────────────────────────────────────────────────────────
+
+  - url: "ytsearch3:cricket fast bowling behind stumps red ball county nets slow motion"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "county-level nets; semi-pro quality; bridge between club and international"
+
+  - url: "ytsearch3:cricket fast bowler side on slow motion full delivery stride technique"
+    camera_angle: side_on
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "professional side-on reference for pose ground-truth"
+
+  - url: "ytsearch2:cricket bowling umpire view crease no-ball front foot club match"
+    camera_angle: umpire_pov
+    ball_color: red
+    bowling_style: fast
+    laterality: right
+    license: youtube
+    notes: "umpire POV from club/league matches; crease legality detection"
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Phase B: Own footage / permissive license (uncomment when available)
+  # ─────────────────────────────────────────────────────────────────────
+  # - url: "/path/to/local/net_session_01.mp4"
+  #   camera_angle: behind_stumpsz
+  #   ball_color: red
+  #   bowling_style: fast
+  #   laterality: right
+  #   bowler_name: "self"
+  #   license: own_footage
+  #   notes: "Local net session, tripod behind stumps"
+
+  # ─────────────────────────────────────────────────────────────────────
+  # NEW UPLOADS - Added on 2026-03-18
+  # ─────────────────────────────────────────────────────────────────────
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-001/PXL_20260223_073246173.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-001) kids are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-001/PXL_20260223_073417651.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-001) kids are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-001/PXL_20260223_073616465.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: slow_medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-001) kids are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-001/PXL_20260223_073723289.mp4"
+    camera_angle: behind_stumps
+    ball_color: white
+    bowling_style: slow
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-001) kids are bowling with white ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250305_083150855.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250305_083259228.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250305_084157218.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250305_090010695.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250305_090133110.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250314_072331414.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250314_072544914.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250314_074205685.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20250314_075915315.mp4"
+    camera_angle: front_stumps
+    ball_color: orange
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20251104_025422588.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: young_player_medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20251104_025454246.mp4"
+    camera_angle: behind_stumps
+    ball_color: orange
+    bowling_style: young_player_medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002) young players are bowling with orange ball"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20251113_071831102.mp4"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002)"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20251113_071847977.mp4"
+    camera_angle: behind_stumps
+    ball_color: red
+    bowling_style: slow_spin
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002)"
+
+  - url: "/Users/viknarasimhan/Documents/aicoach/Photos-3-002/PXL_20260204_070239919.mp4"
+    camera_angle: behind_stumps
+    ball_color: red_synthetic
+    bowling_style: young_player_medium
+    laterality: right
+    license: own_footage
+    notes: "Personal video from phone (Photos-3-002)"

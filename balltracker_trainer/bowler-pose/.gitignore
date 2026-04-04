@@ -1,0 +1,30 @@
+# Datasets & model weights
+datasets/
+runs/
+*.pt
+*.onnx
+*.engine
+*.torchscript
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Experiment tracking
+wandb/
+mlruns/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

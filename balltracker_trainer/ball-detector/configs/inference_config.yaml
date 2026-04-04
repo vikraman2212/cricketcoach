@@ -1,0 +1,13 @@
+# Runtime configuration for the inference/analysis pipeline
+# These variables are NOT used during training — they configure post-detection
+# physics calculations (speed estimation, trajectory analysis, etc.)
+
+# Pitch geometry
+pitch_length_meters: 20.12      # Standard pitch (use 16.0 for junior cricket)
+
+# Ball properties
+ball_weight_grams: 156           # Senior ball (use 142 for junior)
+ball_color: red                  # red | white | pink — affects CV preprocessing
+
+# Bowler reference
+bowler_height_cm: 180            # Used for depth estimation via pixel scaling

@@ -1,0 +1,5 @@
+# Shared tooling dependencies (video download & frame extraction)
+yt-dlp>=2024.0
+pyyaml>=6.0
+tqdm>=4.65
+opencv-python>=4.8

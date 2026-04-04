@@ -1,0 +1,35 @@
+# Training hyperparameters for bowler-pose fine-tuning
+# Override any value via CLI: python scripts/train.py --epochs 200
+
+# Model
+model: yolo11s-pose.pt    # Pre-trained Small pose model (balance accuracy vs speed)
+data: configs/cricket_pose.yaml
+
+# Training
+epochs: 150
+imgsz: 640
+batch: 16
+device: auto              # auto-detects CUDA, MPS, or CPU
+workers: 8
+patience: 30              # Early stopping patience
+
+# Loss weights (focus on skeleton accuracy over bbox)
+pose: 12.0                # Pose loss weight — increased to prioritize keypoint accuracy
+kobj: 2.0                 # Keypoint objectness loss weight
+
+# Augmentation (aggressive — handles amateur mobile phone footage)
+degrees: 10.0             # Rotation range (±degrees)
+translate: 0.15           # Translation fraction
+scale: 0.5                # Scale gain
+shear: 2.0                # Shear angle
+perspective: 0.001        # Perspective warp
+flipud: 0.0               # No vertical flip (humans don't bowl upside down)
+fliplr: 0.5               # Horizontal flip (simulates L/R arm bowlers)
+mosaic: 1.0               # Mosaic augmentation probability
+mixup: 0.1                # MixUp probability
+copy_paste: 0.1           # Copy-paste augmentation
+
+# Output
+project: runs/pose
+name: train
+exist_ok: false

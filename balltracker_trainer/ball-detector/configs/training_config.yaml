@@ -1,0 +1,31 @@
+# Training hyperparameters for ball-detector fine-tuning
+# Override any value via CLI: python scripts/train.py --epochs 300
+
+# Model
+model: yolo11n.pt         # Pre-trained Nano model (speed-first for 120fps processing)
+data: configs/cricket_ball.yaml
+
+# Training
+epochs: 200
+imgsz: 640
+batch: 32
+device: auto              # auto-detects CUDA, MPS, or CPU
+workers: 8
+patience: 40              # Early stopping patience
+
+# Augmentation (aggressive — small object + motion blur focus)
+degrees: 5.0              # Slight rotation
+translate: 0.2            # Translation fraction
+scale: 0.9                # Large scale jitter — ball appears at many sizes
+shear: 0.0
+perspective: 0.001
+flipud: 0.0
+fliplr: 0.5               # Horizontal flip
+mosaic: 1.0               # Mosaic — teaches model to find ball even when small in frame
+mixup: 0.15               # MixUp probability
+copy_paste: 0.3           # Copy-paste — synthetically places ball in different backgrounds
+
+# Output
+project: runs/detect
+name: train
+exist_ok: false

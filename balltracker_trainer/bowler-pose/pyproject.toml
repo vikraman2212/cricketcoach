@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "bowler-pose"
+version = "0.1.0"
+description = "Fine-tune YOLOv11-Pose for cricket bowling biomechanics"
+requires-python = ">=3.10"
+dependencies = [
+    "ultralytics>=8.3",
+    "opencv-python>=4.8",
+    "pyyaml>=6.0",
+    "matplotlib>=3.7",
+    "tqdm>=4.65",
+]
+
+[project.optional-dependencies]
+annotation = [
+    "supervision>=0.18",
+]
+dev = [
+    "ruff>=0.4",
+    "pytest>=8.0",
+]
