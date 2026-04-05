@@ -15,9 +15,9 @@ RUN ./mvnw package -DskipTests -q
 # ─── Stage 2: Runtime image with PostgreSQL ────────────────────────────────────
 FROM eclipse-temurin:25-jre-noble
 
-# Install PostgreSQL
+# Install PostgreSQL and curl (curl is used by the health-check probe)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql \
+    && apt-get install -y --no-install-recommends postgresql curl \
     && rm -rf /var/lib/apt/lists/*
 
 # ── PostgreSQL configuration ────────────────────────────────────────────────

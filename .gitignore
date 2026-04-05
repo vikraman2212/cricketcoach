@@ -9,6 +9,9 @@ middleware/.idea/
 .DS_Store
 Photos**/
 
+# Environment files — never commit real credentials
+.env
+
 # Python
 **/.venv/
 **/__pycache__/
