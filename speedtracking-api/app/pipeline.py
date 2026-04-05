@@ -194,6 +194,17 @@ async def run_pipeline(delivery_id: str, bucket: str, object_key: str) -> None:
             None, _download_video, bucket, object_key
         )
 
+        if not video_bytes:
+            await delivery_store.append_event(
+                delivery_id,
+                DeliveryEvent(
+                    event="failed",
+                    data=f"Could not download video from s3://{bucket}/{object_key}",
+                ),
+            )
+            await delivery_store.mark_done(delivery_id)
+            return
+
         await delivery_store.append_event(
             delivery_id,
             DeliveryEvent(event="detecting", data="Detecting ball trajectory"),
@@ -207,7 +218,7 @@ async def run_pipeline(delivery_id: str, bucket: str, object_key: str) -> None:
             None,
             _analysis_service.analyze,
             video_name,
-            video_bytes if video_bytes else b"\x00",  # non-empty placeholder
+            video_bytes,
             config,
         )
 

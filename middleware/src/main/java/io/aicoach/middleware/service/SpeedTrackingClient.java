@@ -3,11 +3,13 @@ package io.aicoach.middleware.service;
 import io.aicoach.middleware.exception.SpeedTrackingServiceException;
 import io.aicoach.middleware.model.DeliveryAnalysisResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -75,10 +77,15 @@ public class SpeedTrackingClient {
                     .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
                             .map(body -> new SpeedTrackingServiceException(
                                     "SpeedTracking API error on SSE stream: " + body)))
-                    .bodyToFlux(String.class)
-                    .doOnNext(line -> {
+                    .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {})
+                    .doOnNext(sse -> {
                         try {
-                            emitter.send(SseEmitter.event().data(line));
+                            SseEmitter.SseEventBuilder event = SseEmitter.event()
+                                    .data(sse.data() != null ? sse.data() : "");
+                            if (sse.event() != null) {
+                                event.name(sse.event());
+                            }
+                            emitter.send(event);
                         } catch (IOException ex) {
                             throw new SpeedTrackingServiceException("Failed to relay SSE event", ex);
                         }
