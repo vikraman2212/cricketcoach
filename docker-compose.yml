@@ -1,0 +1,121 @@
+# AI Cricket Coach — local development stack
+# See: req_docs/ERD_AI_Cricket_Coach_MVP.md §3 (Infrastructure)
+#
+# Services
+#   minio            — S3-compatible object storage (video hand-off layer)
+#   minio-init       — one-shot job: creates the "deliveries" bucket and wires
+#                      the s3:ObjectCreated:Put webhook to speedtracking-api
+#   speedtracking-api — FastAPI CV/physics service (triggered by MinIO webhook)
+#   middleware       — Spring Boot orchestration layer (presigned URLs, SSE relay)
+#
+# Usage
+#   docker compose up          # start all services (builds images on first run)
+#   docker compose up --build  # force rebuild
+#   docker compose down -v     # stop and remove volumes
+
+services:
+
+  # ── MinIO ────────────────────────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API — used by all services + Flutter presigned uploads
+      - "9001:9001"   # MinIO web console  (http://localhost:9001)
+    environment:
+      # Override these via a .env file or environment variables for non-local use.
+      # See .env.example for guidance.
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      # Pre-register the webhook target so the ARN is available immediately.
+      # Identifier "1" → ARN  arn:minio:sqs::1:webhook
+      MINIO_NOTIFY_WEBHOOK_ENABLE_1: "on"
+      MINIO_NOTIFY_WEBHOOK_ENDPOINT_1: "http://speedtracking-api:8000/webhooks/minio"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── MinIO initialisation (one-shot job) ──────────────────────────────────────
+  # Runs after MinIO is healthy, creates the bucket and attaches the webhook
+  # notification.  The container exits once the setup is complete.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} &&
+        mc mb --ignore-existing local/deliveries &&
+        if mc event add local/deliveries arn:minio:sqs::1:webhook --event put; then
+          echo 'Webhook event registered';
+        else
+          echo 'Warning: webhook event already registered or registration failed (non-fatal)';
+        fi &&
+        echo 'MinIO initialisation complete' &&
+        mc event list local/deliveries
+      "
+    restart: "no"
+
+  # ── speedtracking-api ────────────────────────────────────────────────────────
+  speedtracking-api:
+    build:
+      context: ./speedtracking-api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      BALL_DETECTOR_MODEL: /models/cricket_ball_best.pt
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - ./speedtracking-api/models:/models:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ── middleware ───────────────────────────────────────────────────────────────
+  middleware:
+    build:
+      context: ./middleware
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      # Presigned PUT URLs must point to the host-accessible MinIO address
+      # so that the Flutter client can upload directly from the device.
+      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      SPEEDTRACKING_SERVICE_BASE_URL: http://speedtracking-api:8000
+    depends_on:
+      minio:
+        condition: service_healthy
+      speedtracking-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  minio-data:
