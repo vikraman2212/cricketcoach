@@ -1,91 +1,94 @@
 name: Require Tests
 
 on:
-  pull_request:
-    branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
 
 jobs:
-  check-tests-coverage:
-    name: Check tests accompany feature changes
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    check-tests-coverage:
+        name: Check tests accompany feature changes
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Detect changed files
-        id: changed
-        run: |
-          BASE=${{ github.event.pull_request.base.sha }}
-          HEAD=${{ github.sha }}
-          git diff --name-only "$BASE".."$HEAD" > /tmp/changed_files.txt
-          echo "Changed files:"
-          cat /tmp/changed_files.txt
+            - name: Detect changed files
+              id: changed
+              run: |
+                  BASE=${{ github.event.pull_request.base.sha }}
+                  HEAD=${{ github.sha }}
+                  git diff --name-only "$BASE".."$HEAD" > /tmp/changed_files.txt
+                  echo "Changed files:"
+                  cat /tmp/changed_files.txt
 
-      - name: Enforce test coverage for middleware (Java)
-        run: |
-          CHANGED=$(cat /tmp/changed_files.txt)
+            - name: Enforce test coverage for middleware (Java)
+              run: |
+                  CHANGED=$(cat /tmp/changed_files.txt)
 
-          MAIN_JAVA=$(echo "$CHANGED" | grep -E '^middleware/src/main/java/.*\.java$' || true)
-          TEST_JAVA=$(echo "$CHANGED" | grep -E '^middleware/src/test/java/.*\.java$' || true)
+                  MAIN_JAVA=$(echo "$CHANGED" | grep -E '^middleware/src/main/java/.*\.java$' || true)
+                  TEST_JAVA=$(echo "$CHANGED" | grep -E '^middleware/src/test/java/.*\.java$' || true)
 
-          if [ -n "$MAIN_JAVA" ] && [ -z "$TEST_JAVA" ]; then
-            echo "❌ Java source files changed without any test files:"
-            echo "$MAIN_JAVA"
-            echo ""
-            echo "Add or update tests under middleware/src/test/java/ to match your changes."
-            exit 1
-          fi
+                  if [ -n "$MAIN_JAVA" ] && [ -z "$TEST_JAVA" ]; then
+                    echo "❌ Java source files changed without any test files:"
+                    echo "$MAIN_JAVA"
+                    echo ""
+                    echo "Add or update tests under middleware/src/test/java/ to match your changes."
+                    exit 1
+                  fi
 
-          echo "✅ middleware: OK"
+                  echo "✅ middleware: OK"
 
-      - name: Enforce test coverage for speedtracking-api (Python)
-        run: |
-          CHANGED=$(cat /tmp/changed_files.txt)
+            - name: Enforce test coverage for speedtracking-api (Python)
+              run: |
+                  CHANGED=$(cat /tmp/changed_files.txt)
 
-          MAIN_PY=$(echo "$CHANGED" | grep -E '^speedtracking-api/app/.*\.py$' || true)
-          TEST_PY=$(echo "$CHANGED" | grep -E '^speedtracking-api/tests/test_.*\.py$' || true)
+                  MAIN_PY=$(echo "$CHANGED" | grep -E '^speedtracking-api/app/.*\.py$' || true)
+                  TEST_PY=$(echo "$CHANGED" | grep -E '^speedtracking-api/tests/test_.*\.py$' || true)
 
-          if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
-            echo "❌ Python source files changed without any test files:"
-            echo "$MAIN_PY"
-            echo ""
-            echo "Add or update tests under speedtracking-api/tests/ to match your changes."
-            exit 1
-          fi
+                  if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
+                    echo "❌ Python source files changed without any test files:"
+                    echo "$MAIN_PY"
+                    echo ""
+                    echo "Add or update tests under speedtracking-api/tests/ to match your changes."
+                    exit 1
+                  fi
 
-          echo "✅ speedtracking-api: OK"
+                  echo "✅ speedtracking-api: OK"
 
-      - name: Enforce test coverage for ball-detector (Python)
-        run: |
-          CHANGED=$(cat /tmp/changed_files.txt)
+            - name: Enforce test coverage for ball-detector (Python)
+              run: |
+                  CHANGED=$(cat /tmp/changed_files.txt)
 
-          MAIN_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/ball-detector/(scripts|src)/.*\.py$' || true)
-          TEST_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/ball-detector/tests/test_.*\.py$' || true)
+                  MAIN_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/ball-detector/(scripts|src)/.*\.py$' || true)
+                  TEST_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/ball-detector/tests/test_.*\.py$' || true)
 
-          if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
-            echo "❌ ball-detector source files changed without any test files:"
-            echo "$MAIN_PY"
-            echo ""
-            echo "Add or update tests under balltracker_trainer/ball-detector/tests/ to match your changes."
-            exit 1
-          fi
+                  if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
+                    echo "❌ ball-detector source files changed without any test files:"
+                    echo "$MAIN_PY"
+                    echo ""
+                    echo "Add or update tests under balltracker_trainer/ball-detector/tests/ to match your changes."
+                    exit 1
+                  fi
 
-          echo "✅ ball-detector: OK"
+                  echo "✅ ball-detector: OK"
 
-      - name: Enforce test coverage for bowler-pose (Python)
-        run: |
-          CHANGED=$(cat /tmp/changed_files.txt)
+            - name: Enforce test coverage for bowler-pose (Python)
+              run: |
+                  CHANGED=$(cat /tmp/changed_files.txt)
 
-          MAIN_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/bowler-pose/(scripts|src)/.*\.py$' || true)
-          TEST_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/bowler-pose/tests/test_.*\.py$' || true)
+                  MAIN_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/bowler-pose/(scripts|src)/.*\.py$' || true)
+                  TEST_PY=$(echo "$CHANGED" | grep -E '^balltracker_trainer/bowler-pose/tests/test_.*\.py$' || true)
 
-          if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
-            echo "❌ bowler-pose source files changed without any test files:"
-            echo "$MAIN_PY"
-            echo ""
-            echo "Add or update tests under balltracker_trainer/bowler-pose/tests/ to match your changes."
-            exit 1
-          fi
+                  if [ -n "$MAIN_PY" ] && [ -z "$TEST_PY" ]; then
+                    echo "❌ bowler-pose source files changed without any test files:"
+                    echo "$MAIN_PY"
+                    echo ""
+                    echo "Add or update tests under balltracker_trainer/bowler-pose/tests/ to match your changes."
+                    exit 1
+                  fi
 
-          echo "✅ bowler-pose: OK"
+                  echo "✅ bowler-pose: OK"

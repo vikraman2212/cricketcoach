@@ -1,6 +1,66 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+# ── MinIO webhook payload ─────────────────────────────────────────────────────
+
+
+class MinioS3Object(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    key: str
+
+
+class MinioS3Bucket(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    name: str
+
+
+class MinioS3Detail(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    bucket: MinioS3Bucket
+    object: MinioS3Object
+
+
+class MinioRecord(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    s3: MinioS3Detail
+
+
+class MinioWebhookPayload(BaseModel):
+    """Payload sent by MinIO for s3:ObjectCreated:Put events."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    EventName: str
+    Key: str
+    Records: list[MinioRecord] = Field(default_factory=list)
+
+    def bucket(self) -> str:
+        if self.Records:
+            return self.Records[0].s3.bucket.name
+        return self.Key.split("/")[0]
+
+    def object_key(self) -> str:
+        if self.Records:
+            return self.Records[0].s3.object.key
+        parts = self.Key.split("/", 1)
+        return parts[1] if len(parts) > 1 else self.Key
+
+
+# ── Delivery pipeline ─────────────────────────────────────────────────────────
+
+
+class DeliveryEventPayload(BaseModel):
+    event: str
+    data: Any
+
+
+# ── Analysis config & response ────────────────────────────────────────────────
 
 
 class AnalyzeDeliveryConfig(BaseModel):

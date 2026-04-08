@@ -3,15 +3,18 @@ package io.aicoach.middleware.service;
 import io.aicoach.middleware.exception.SpeedTrackingServiceException;
 import io.aicoach.middleware.model.DeliveryAnalysisResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -54,6 +57,47 @@ public class SpeedTrackingClient {
             return response;
         } catch (IOException ex) {
             throw new SpeedTrackingServiceException("Failed to stream uploaded video to SpeedTracking API", ex);
+        }
+    }
+
+    /**
+     * Relays Server-Sent Events from the speedtracking-api to the given
+     * {@link SseEmitter}.  Blocks until the upstream stream completes, times
+     * out, or the calling thread is interrupted.
+     *
+     * @param deliveryId the delivery to stream events for
+     * @param emitter    the Spring MVC SSE emitter to relay events through
+     */
+    public void relayEvents(String deliveryId, SseEmitter emitter) {
+        try {
+            webClient.get()
+                    .uri("/api/v1/deliveries/{id}/events", deliveryId)
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse -> clientResponse.bodyToMono(String.class)
+                            .map(body -> new SpeedTrackingServiceException(
+                                    "SpeedTracking API error on SSE stream: " + body)))
+                    .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {})
+                    .doOnNext(sse -> {
+                        try {
+                            SseEmitter.SseEventBuilder event = SseEmitter.event()
+                                    .data(sse.data() != null ? sse.data() : "");
+                            if (sse.event() != null) {
+                                event.name(sse.event());
+                            }
+                            emitter.send(event);
+                        } catch (IOException ex) {
+                            throw new SpeedTrackingServiceException("Failed to relay SSE event", ex);
+                        }
+                    })
+                    .blockLast();
+
+            emitter.complete();
+        } catch (SpeedTrackingServiceException ex) {
+            emitter.completeWithError(ex);
+        } catch (Exception ex) {
+            emitter.completeWithError(
+                    new SpeedTrackingServiceException("SSE relay failed: " + ex.getMessage(), ex));
         }
     }
 
