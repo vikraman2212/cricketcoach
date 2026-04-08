@@ -17,7 +17,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 import boto3
-from botocore.exceptions import ClientError
 
 from .schemas import AnalyzeDeliveryConfig
 from .services import BootstrapAnalysisService
@@ -124,14 +123,22 @@ def _make_s3_client() -> Any:
 
 
 def _download_video(bucket: str, object_key: str) -> bytes:
-    """Download video bytes from MinIO/S3.  Returns empty bytes on error."""
+    """Download video bytes from MinIO/S3.  Returns empty bytes on any error."""
+    body = None
     try:
         client = _make_s3_client()
         response = client.get_object(Bucket=bucket, Key=object_key)
-        return response["Body"].read()
-    except ClientError as exc:
+        body = response["Body"]
+        return body.read()
+    except Exception as exc:  # noqa: BLE001 — covers ClientError, EndpointConnectionError, etc.
         logger.warning("Could not download video s3://%s/%s: %s", bucket, object_key, exc)
         return b""
+    finally:
+        if body is not None:
+            try:
+                body.close()
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def _delete_video(bucket: str, object_key: str) -> None:
